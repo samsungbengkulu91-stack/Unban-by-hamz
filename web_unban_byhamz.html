@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>HAMZ UNBAN</title>
+<link rel="icon" href="https://files.catbox.moe/jym01m.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+:root {
+  --bg:#05060a;
+  --card:#0a0d14;
+  --accent:#7f5bff;
+  --accent2:#4db9ff;
+  --text:#f0f0f0;
+  --subtext:#bfc7d6;
+  --radius:14px;
+  --glass:rgba(255,255,255,0.06);
+  --duration:5s;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Inter",sans-serif;}
+body{background:var(--bg);color:var(--text);overflow-x:hidden;}
+
+/* ================== INTRO ================== */
+#introOverlay{
+  position:fixed; inset:0; z-index:50; display:flex; justify-content:center; align-items:center; flex-direction:column; transition:0.6s ease;
+}
+#introOverlay.hidden{opacity:0;pointer-events:none;}
+
+.video-container{
+  position:fixed; inset:0; overflow:hidden;
+}
+.video-container video{
+  width:100%; height:100%; object-fit:cover;
+}
+
+/* konten overlay di tengah layar */
+.intro-content{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  display:flex; flex-direction:column; align-items:center;
+  text-align:center;
+  gap:12px;
+}
+
+/* Foto robot kotak */
+.robot-face img{
+  width:150px; height:150px; object-fit:cover; border-radius:8px; border:2px solid var(--accent2);
+}
+
+/* Loading bar dan teks */
+.loading-area{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:var(--glass); padding:20px; border-radius:var(--radius);
+  backdrop-filter:blur(12px);
+}
+.loading-text{font-size:18px; letter-spacing:2px; color:#fff; margin-bottom:10px;}
+.loading-bar{width:200px; height:6px; background:rgba(255,255,255,0.2); border-radius:10px; overflow:hidden; margin-bottom:10px;}
+.loading-bar i{display:block; height:100%; width:0%; background:var(--accent2); animation:fillBar var(--duration) linear forwards;}
+@keyframes fillBar{from{width:0%}to{width:100%;}}
+
+.brand-text{font-size:22px; color:#fff; font-family:"Orbitron",sans-serif; letter-spacing:2px;}
+
+/* ================== APP ================== */
+#app{padding:20px;opacity:0;pointer-events:none;transform:translateY(40px);transition:0.6s;}
+#app.visible{opacity:1;transform:translateY(0);pointer-events:auto;}
+.topbar{width:100%;text-align:center;padding:20px 0;}
+.title-top{font-size:26px;font-family:"Orbitron",sans-serif;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;color:transparent;font-weight:900;}
+.robot-box{margin:25px auto;text-align:center;}
+.robot-title-normal{margin-top:10px;font-size:20px;font-weight:600;color:var(--accent2);}
+.form-label{display:block;margin:14px 0 6px;color:var(--subtext);font-size:14px;}
+.input{width:100%;padding:12px 14px;background:var(--glass);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius);color:var(--text);backdrop-filter:blur(7px);outline:none;font-size:15px;transition:0.3s;}
+.input:focus{border-color:var(--accent2);box-shadow:0 0 10px rgba(77,185,255,0.4);}
+.select-wrapper{margin-top:5px;}
+.btn{width:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));padding:14px;border:none;border-radius:var(--radius);color:#fff;margin-top:22px;font-weight:700;font-size:16px;letter-spacing:1px;box-shadow:0 0 15px rgba(77,185,255,0.4);transition:0.25s;cursor:pointer;}
+.btn:active{transform:scale(0.97);box-shadow:0 0 10px rgba(77,185,255,0.3);}
+.btn[aria-busy="true"]{opacity:0.6;pointer-events:none;}
+.status{margin-top:12px;font-size:14px;color:var(--accent2);min-height:24px;}
+.small{text-align:center;margin-top:25px;color:var(--subtext);font-size:12px;}
+.overlay{display:none;}
+
+/* ================== WELCOME ================== */
+#welcomeBox{position:fixed;top:20px;left:50%;transform:translateX(-50%) scale(0.7);background:var(--glass);backdrop-filter:blur(12px);padding:12px 25px;border-radius:var(--radius);opacity:0;transition:0.4s;z-index:20;}
+#welcomeBox.active{opacity:1;transform:translateX(-50%) scale(1);}
+.gradientText{font-size:18px;font-weight:700;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;color:transparent;}
+</style>
+</head>
+<body>
+
+<!-- ================= INTRO ================= -->
+<div id="introOverlay" aria-hidden="false">
+  <div class="video-container">
+    <video id="player" playsinline preload="metadata" autoplay muted>
+      <source src="https://files.catbox.moe/mm85lg.mp4" type="video/mp4">
+    </video>
+  </div>
+
+  <div class="intro-content">
+    <div class="robot-face">
+      <img src="https://files.catbox.moe/jym01m.jpg" alt="Robot">
+    </div>
+    <div class="loading-area" id="loading">
+      <div class="loading-text">Loading</div>
+      <div class="loading-bar"><i id="bar"></i></div>
+      <div class="brand-text">HAMZ UNBANNED APPS</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= WELCOME ================= -->
+<div id="welcomeBox" aria-hidden="true">
+  <div id="welcomeContent">
+    <div class="gradientText">SELAMAT DATANG</div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app" role="main" aria-hidden="true">
+  <header class="topbar">
+    <div class="title-top">HAMZ UNBANNED</div>
+  </header>
+
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+
+  <div class="robot-box" aria-hidden="false">
+    <div class="robot-face">
+      <img src="https://files.catbox.moe/jym01m.jpg" alt="Logo Robot">
+    </div>
+    <div class="robot-title-normal">Hamz Unban WhatsApp</div>
+  </div>
+
+  <label class="form-label" for="nomor">Nomor :</label>
+  <input type="tel" id="nomor" class="input" placeholder="+628×××" inputmode="tel" aria-required="true" />
+
+  <label class="form-label" for="alasan">Pilih Opsi Band</label>
+  <div class="select-wrapper">
+    <select id="alasan" class="input" aria-required="true">
+      <option value="">UNBANNED OPTION</option>
+      <option value="permafresh">PERMA FRESH</option>
+      <option value="SPAM">SPAM</option>
+      <option value="PERMA HARD">PERMA HARD</option>
+      <option value="PERMASEMINGGU">PERMA -SEMINGGU</option>
+      <option value="opsi5">PERMA BATU</option>
+    </select>
+  </div>
+
+  <button class="btn" id="sendBtn" aria-label="Kirim Banding">UNBANNED</button>
+  <div class="status" id="statusArea" aria-live="polite"></div>
+  <div class="small">VIP METODE UNBANNED APPS</div>
+</div>
+
+<div style="text-align:center;margin:25px 0;color:#6f7a91;font-size:11px;opacity:0.8;">
+  web ini free jika ad yang jual biasa org b.u/miskin😹
+</div>
+
+<script>
+  /* ------------------ Intro controls ------------------ */
+  const video = document.getElementById("player");
+  const bar = document.getElementById("bar");
+  const loading = document.getElementById("loading");
+  const introOverlay = document.getElementById("introOverlay");
+  const app = document.getElementById("app");
+  const welcomeBox = document.getElementById("welcomeBox");
+
+  video.addEventListener("loadedmetadata", () => {
+    const dur = video.duration || 5;
+    document.documentElement.style.setProperty("--duration", dur + "s");
+    if (bar) bar.style.animationDuration = dur + "s";
+  });
+
+  function tryPlay() {
+    video.muted = false;
+    video.volume = 1.0;
+    video.play().catch(() => {
+      video.muted = true;
+      video.play().catch(()=>{/* ignore */});
+    });
+  }
+
+  window.addEventListener("load", tryPlay);
+
+  function showAppAfterIntro() {
+    // fade-out intro overlay
+    introOverlay.classList.add("hidden");
+    // reveal app after fade
+    setTimeout(() => {
+      introOverlay.style.display = "none";
+      app.classList.add("visible");
+      app.setAttribute("aria-hidden","false");
+      // show welcome popup once (if not shown before)
+      if (!localStorage.getItem("welcomeShown")) {
+        setTimeout(()=> {
+          welcomeBox.classList.add("active");
+          welcomeBox.setAttribute("aria-hidden","false");
+          localStorage.setItem("welcomeShown","yes");
+          setTimeout(()=> {
+            welcomeBox.classList.remove("active");
+            welcomeBox.setAttribute("aria-hidden","true");
+          }, 3000);
+        }, 200); // small delay so app visible first
+      }
+    }, 620); // match CSS fade timing
+  }
+
+  video.addEventListener("ended", () => {
+    if (loading) loading.classList.add("hidden");
+    // small delay so loading hides nicely then transition
+    setTimeout(showAppAfterIntro, 300);
+  });
+
+  // safety fallback if video can't play/ended event missed
+  setTimeout(()=> {
+    if (!video.ended && introOverlay && introOverlay.style.display !== "none") {
+      try { showAppAfterIntro(); } catch(e){}
+    }
+  }, 9000);
+
+  /* ------------------ App / Mail logic (original, preserved + fixed) ------------------ */
+  const sendBtn = document.getElementById('sendBtn');
+  const statusEl = document.getElementById('statusArea');
+  const nomorInput = document.getElementById('nomor');
+  const alasanSelect = document.getElementById('alasan');
+
+  function enc(v){ return encodeURIComponent(v || ''); }
+  function isAndroid(){ return /Android/i.test(navigator.userAgent); }
+  function setStatus(t){ statusEl.textContent = t; }
+  function normalizeNumber(n){
+    if(!n) return n;
+    const s=n.trim().replace(/\s+/g,'');
+    if(/^[0][0-9]+$/.test(s)) return '62'+s.slice(1);
+    if(/^\+/.test(s)) return s;
+    return s;
+  }
+
+  /* buildTemplate: placeholders for 5 opsi (edit text later) */
+  function buildTemplate(nomor, alasan){
+    const tampilNomor = (nomor.startsWith('+') || nomor.startsWith('62')) ? nomor : ('+'+nomor);
+
+    switch(alasan){
+      case "permafresh":
+        return {
+          to: 'support@support.whatsapp.com',
+          subject: 'Hello whatsapp developer, please help me.',
+          body: `Hello developer, my Whatsapp is mamz. I would like to ask for help regarding my account being blocked a few hours ago. I don't know the exact reason, but when I woke up and wanted to chat with my girlfriend, my Whatsapp account was blocked permanently. Here is my blocked Whatsapp number:\n${tampilNomor} I beg you to restore it immediately, thank you.`
+        };
+      case "SPAM":
+        return {
+          to: 'support@support.whatsapp.com',
+          subject: 'tolong saya',
+          body: `Hallo developer whatsapp saya mamz salah satu pengguna whatsapp dari tahun 2023 dan saya saat ini ingin mengeluhkan atas pemblockiran akun whatsapp saya dengan alasan spam pada tanggal [ tanggal ke band ], ini sangat lah aneh karena saya sudah sering membaca layanan ketentuan aplikasi whatsapp dan sudah mematuhinya juga selama 2/3 tahun terakhir dan saya percaya ini adalah kesalahan sistem whatsapp yang salah mendeteksi kesalahan sehingga mungkin hanya chatan biasa pun bisa di anggap spam dan di blockir. Saya mohon untuk pihak whatsapp fix bug ini karena sangat meresahkan dan buka kan akun whatsapp saya [ ${tampilNomor} ] secepat mungkin karena saya ingin menghubungi keluarga saya yang kini sedang ada di luar kota dan saya menyayangi nya, terima kasih.`
+        };
+      case "PERMA HARD":
+        return {
+          to: 'support@support.whatsapp.com',
+          subject: `please unblock this WhatsApp account [ ${tampilNomor} ] its a system error`,
+          body: `Hi developer, I'm contacting you via WhatsApp to request a review of my WhatsApp account, which has been blocked for no apparent reason. I've already requested a review through the WhatsApp application, but the block hasn't been lifted. I urgently need that WhatsApp account, as I've mentioned in the Gmail subject. Sorry for bothering you, but I need my WhatsApp account back now. Thank you.`
+        };
+      case "PERMASEMINGGU":
+        return {
+          to: 'support@support.whatsapp.com',
+          subject: 'help me plss',
+          body: `Hi WhatsApp Developer, I'm mamz. My WhatsApp account (${tampilNomor}) was blocked without reason. I always follow WhatsApp's Terms of Service, use the official app, never spam, and behave respectfully. I believe this is a system error. Please review and restore my account. Thank you for your attention and help.`
+        };
+      case "opsi5":
+        return {
+          to: 'support@support.whatsapp.com',
+          subject: 'hi',
+          body: `Hizmet şartlarınızı ihlal etmedim, hesabı açıklanamaz bir şekilde yasakladınız. Hesap etkinliklerimi inceledikten sonra, WhatsApp a erişebilmem için kısıtlamayı hızla kaldırırsınız. Çünkü hesabım yanlışlıkla yasaklandı 
+
+Şartlarınızı veya politikanızı ihlal ettiğimi kabul ediyorum ve bunun için gerçekten üzgünüm lütfen bir şans verin ve yasağı hesabımdan kaldırın ${tampilNomor} isim Satya Budist gursarai
+
+Görüşleriniz için teşekkürler
+Hindistan lıyım, ülke kodum ${tampilNomor}
+Yasal adım Satya Budist gursarai
+Umarım bu SIM kartın yeni sahibi olduğum için WhatsApp hesap numaramdan kısıtlamalarınızı kaldırırsınız ${tampilNomor}
+
+Ve o kaldırılmalıdır, aksi takdirde WhatsApp ın derecelendirmesini rahatsız etmeyeceksiniz Ki amaiyo chod hoga kardeş ke lado
+`
+        };
+      default:
+        return {
+          to: 'support@support.whatsapp.com',
+          subject: `My WhatsApp number was blocked ${tampilNomor}`,
+          body: `प्रिय व्हाट्सएप सपोर्ट टीम,
+
+मुझे आशा है कि यह संदेश आपको अच्छी तरह से मिल जाएगा ।  मैं अपने व्हाट्सएप अकाउंट पर प्रतिबंध की अपील करने के लिए लिख रहा हूं ।  मैं समझता हूं कि व्हाट्सएप की सेवा की शर्तों के उल्लंघन के कारण मेरे खाते पर प्रतिबंध लगा दिया गया था, और मैं किसी भी अनजाने कार्यों के लिए ईमानदारी से माफी मांगता हूं जिसके कारण यह हो सकता है । 
+
+मैं व्हाट्सएप को एक आवश्यक संचार उपकरण और समुदाय के रूप में महत्व देता हूं, और मैं व्हाट्सएप की नीतियों और दिशानिर्देशों का पालन करने के लिए प्रतिबद्ध हूं ।  मैं कृपया अपने मामले की समीक्षा और अपने खाते पर प्रतिबंध हटाने का अनुरोध करता हूं ताकि मैं जिम्मेदारी से व्हाट्सएप का उपयोग करना जारी रख सकूं । 
+
+कृपया नीचे कुछ जानकारी प्राप्त करें जो आपकी समीक्षा के लिए सहायक हो सकती हैं: - मेरा पंजीकृत फोन नंबर.`
+        };
+    }
+  }
+
+  function buildIntentUrl(t){return `intent://compose?to=${enc(t.to)}&subject=${enc(t.subject)}&body=${enc(t.body)}#Intent;scheme=mailto;package=com.google.android.gm;end`;}
+  function buildMailtoUrl(t){return `mailto:${enc(t.to)}?subject=${enc(t.subject)}&body=${enc(t.body)}`;}
+  function buildGmailWebUrl(t){return `https://mail.google.com/mail/?view=cm&fs=1&to=${enc(t.to)}&su=${enc(t.subject)}&body=${enc(t.body)}`;}
+
+  sendBtn.addEventListener('click',()=>{
+    let nomor=(nomorInput.value||'').trim();
+    let alasan=(alasanSelect.value||'');
+
+    if(!nomor || !alasan){ setStatus("Mohon isi nomor & pilih alasan."); return; }
+
+    nomor = normalizeNumber(nomor);
+    const tpl = buildTemplate(nomor, alasan);
+
+    const intentUrl = buildIntentUrl(tpl);
+    const mailtoUrl = buildMailtoUrl(tpl);
+    const gmailWebUrl = buildGmailWebUrl(tpl);
+
+    sendBtn.disabled = true;
+    sendBtn.setAttribute('aria-busy','true');
+
+    if(isAndroid()){
+      setStatus("Mencoba membuka Gmail app...");
+      try{ window.location.href = intentUrl; } catch(e){}
+
+      let handled=false;
+      const fallback = ()=>{
+        if(handled) return;
+        handled=true;
+        setStatus("GAGAL...");
+        try{ window.location.href = mailtoUrl; } catch(e){
+          try{ window.open(gmailWebUrl,'_blank'); } catch(err){ setStatus("Gagal membuka email."); }
+        }
+        sendBtn.disabled=false;
+        sendBtn.removeAttribute('aria-busy');
+      };
+
+      const onVisChange = ()=>{
+        if(document.hidden){
+          handled=true;
+          setStatus("Compose terbuka.");
+          sendBtn.disabled=false;
+          sendBtn.removeAttribute('aria-busy');
+        }
+      };
+      document.addEventListener('visibilitychange', onVisChange, {once:true});
+      setTimeout(()=>{ if(!handled) fallback(); }, 1200);
+
+    } else {
+      setStatus("Membuka aplikasi email...");
+      try{
+        window.location.href = mailtoUrl;
+        setTimeout(()=>{
+          if(!document.hidden){
+            try{ window.open(gmailWebUrl,"_blank"); } catch(e){}
+          }
+          sendBtn.disabled=false;
+          sendBtn.removeAttribute('aria-busy');
+        },900);
+      }catch(err){
+        try{ window.open(gmailWebUrl,"_blank"); } catch(e){}
+        sendBtn.disabled=false;
+        sendBtn.removeAttribute('aria-busy');
+      }
+    }
+  })
+
+</script>
+
+</body>
+</html>
